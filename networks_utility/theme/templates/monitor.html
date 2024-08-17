@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Form with Region and Emails{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-2xl font-bold mb-6 text-blue-900">Monitoring</h2>
+        <!-- <button type="button" id="export" class="self-end bg-blue-800 text-white py-2 px-4 rounded-md hover:bg-blue-900">Export</button> -->
+         <a href = "{% url 'export_excel' %}">Export Excel</a>
+    </div>
+    <form id="data-form">
+        <div class="mb-4 flex gap-4">
+            <div class="flex-1">
+                <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
+                <select id="region" name="region" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">Select a region</option>
+                    <option value="APAC">APAC</option>
+                    <option value="EMEA">EMEA</option>
+                    <option value="CHINA">CHINA</option>
+                    <option value="AMEC">AMEC</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="client-email" class="block text-sm font-medium text-gray-700">Client Email ID</label>
+                <input type="email" id="client-email" name="client-email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Client Email ID">
+            </div>
+            <div class="flex-1">
+                <label for="recipient-email" class="block text-sm font-medium text-gray-700">Recipient Email ID</label>
+                <input type="email" id="recipient-email" name="recipient-email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Recipient Email ID">
+            </div>
+            <button type="button" id="add-row" class="self-end bg-blue-800 text-white py-2 px-4 rounded-md hover:bg-blue-900">Add Row</button>
+        </div>
+    </form>
+    <div id="email-error" class="text-red-500 text-sm mt-1 hidden">Email must end with @philips.com</div>
+    <div class="mt-6">
+        <table class="min-w-full bg-white border border-gray-300 rounded-md shadow-sm">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-900">Client Email</th>
+                    <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-900">Recipient Email</th>
+                    <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-900">Status</th>
+                    <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-900">Timestamp</th>
+                    <th class="py-2 px-4 border-b text-left text-sm font-medium text-gray-900">Action</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Data will be inserted here by AJAX -->
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function fetchWatchedClients() {
+            fetch("{% url 'get_watched_clients' %}", {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.clients) {
+                    const tableBody = document.getElementById('table-body');
+                    tableBody.innerHTML = '';  
+
+                    const timestamp = new Date().toLocaleString();
+
+                    data.clients.forEach(client => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="py-2 px-4 border-b text-gray-900">${client.client_email}</td>
+                            <td class="py-2 px-4 border-b text-gray-900">${client.recipient_email}</td>
+                            <td class="py-2 px-4 border-b text-gray-900">Pending</td>
+                            <td class="py-2 px-4 border-b text-gray-900">${timestamp}</td>
+                            <td class="py-2 px-4 border-b">
+                                <button class="delete-btn bg-red-600 text-white py-1 px-2 rounded" data-client-email="${client.client_email}" data-recipient-email="${client.recipient_email}">
+                                    Delete
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Add event listeners to all delete buttons
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const clientEmail = this.getAttribute('data-client-email');
+                            const recipientEmail = this.getAttribute('data-recipient-email');
+                            fetch("{% url 'delete_client_recipient' %}", {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'  
+                                },
+                                body: JSON.stringify({
+                                    client_email: clientEmail,
+                                    recipient_email: recipientEmail
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    fetchWatchedClients();
+                                } else {
+                                    console.error('Failed to delete client-recipient pair:', data.error);
+                                }
+                            })
+                            .catch(error => console.error('Error deleting client-recipient pair:', error));
+                        });
+                    });
+                } else {
+                    console.error('No clients data found');
+                }
+            })
+            .catch(error => console.error('Error fetching clients:', error));
+        }
+
+        document.getElementById('add-row').addEventListener('click', function() {
+            const clientEmail = document.getElementById('client-email').value;
+            const recipientEmail = document.getElementById('recipient-email').value;
+            const region = document.getElementById('region').value;
+            const emailError = document.getElementById('email-error');
+            const emailRegex = /^[^\s@]+@philips\.com$/
+            console.log('hello')
+            if (emailRegex.test(clientEmail) && emailRegex.test(recipientEmail)) {
+                emailError.classList.add('hidden');
+                fetch("{% url 'add_client_recipient' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'  
+                    },
+                    body: JSON.stringify({
+                        client_email: clientEmail,
+                        recipient_email: recipientEmail,
+                        region: region
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchWatchedClients();
+                    } else {
+                        console.error('Failed to add client-recipient pair:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error adding client-recipient pair:', error));
+            } else {
+                console.log('hello1')
+                emailError.classList.remove('hidden');
+            }
+        });
+        fetchWatchedClients();
+        setInterval(fetchWatchedClients, 3000);
+    });
+</script>
+{% endblock %}

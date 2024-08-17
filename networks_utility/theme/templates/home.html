@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static tailwind_tags %}
+
+{% block title %}Home{% endblock %}
+
+{% block extra_head %}
+<style>
+    .container-1 {
+        background-image: url("{% static 'assets/background.jpg' %}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-1 flex-1 flex flex-col justify-start items-start">
+    <h6 class="text-4xl text-blue-900 font-black mb-2">DIGITAL NETWORKING TOOLS</h6>
+    <div class="w-2/6">
+        <p class="text-blue-900 font-bold">
+            Digital networking tools streamline company operations by facilitating seamless communication and collaboration among teams,
+            regardless of location.
+        </p>
+    </div>
+    <div class="flex justify-start gap-2">
+        <button class="flex items-center font-semibold px-4 py-2 bg-slate-900/10 text-blue-900 rounded-lg hover:bg-slate-300 hover:opacity-100 transition-colors duration-300">
+            Get Started
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="ml-2 w-4 h-4 fill-current" aria-hidden="true">
+                <path d="M10 6l6 6-6 6-1.41-1.41L13.17 12 8.59 7.41 10 6z"/>
+            </svg>
+        </button>
+        <button class="flex items-center font-semibold px-4 py-2 bg-slate-900/[.1] text-blue-900 rounded-lg hover:bg-slate-300 hover:opacity-100 transition-colors duration-300">
+            Learn more
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="ml-2 w-4 h-4 fill-current" aria-hidden="true">
+                <path d="M10 6l6 6-6 6-1.41-1.41L13.17 12 8.59 7.41 10 6z"/>
+            </svg>
+        </button>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+    console.log('gar')
+</script>
+{% endblock %}
