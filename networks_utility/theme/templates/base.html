@@ -1,4 +1,5 @@
 {% load static tailwind_tags %}
+{% load extra_filters %}
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -6,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}My Website{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'assets/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% tailwind_css %}
     {% block extra_head %}
     {% endblock %}
@@ -19,7 +21,7 @@
                 <span id="monitor" class="cursor-pointer">Monitor</span>
                 {% if user.is_authenticated %}
                     <span class="text-white font-semibold">
-                        Welcome, {{ user.email }}
+                        Welcome, {{ user.email|removeDomain }}
                     </span>
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
