@@ -14,9 +14,9 @@
 </head>
 <body class="h-full flex flex-col">
     <header class="flex-[0.1_0.1_0%] flex justify-between items-center text-white bg-gradient-to-b from-blue-900 to-blue-600 p-4">
-        <img src="{% static 'assets/philips_logo.png' %}" alt="Logo" id="ph-logo" class="home-button cursor-pointer max-h-8 mx-4">
+        <img src="{% static 'assets/philips_logo.png' %}" alt="Logo" id="ph-logo" class="cursor-pointer max-h-8 mx-4">
         <div class="flex-1 flex justify-end p-1 mx-4 text-sm font-semibold">
-            <div class="home-button flex-1 flex justify-end gap-x-8 items-center">
+            <div class="flex-1 flex justify-end gap-x-8 items-center">
                 <span id="home" class="cursor-pointer hover:-translate-y-[1px]">Home</span>
                 <span id="monitor" class="cursor-pointer hover:-translate-y-[1px]">Monitor</span>
                 {% if user.is_authenticated %}
@@ -50,13 +50,18 @@
         document.getElementById("monitor").addEventListener("click", function() {
             window.location.href = "{% url 'monitor' %}";
         });
-        document.getElementById("login").addEventListener("click", function() {
-            window.location.href = "{% url 'login' %}";
-        });
+        const login_var = document.getElementById("login");
+        if(login_var != null){
+            login_var.addEventListener("click",function(){
+                window.location.href= "{% url 'login' %}";
+            });
+        }
+        // document.getElementById("login").addEventListener("click", function() {
+        //     window.location.href = "{% url 'login' %}";
+        // });
         document.getElementById("home").addEventListener("click", function() {
             window.location.href = "{% url 'home' %}";
         });
-
     </script>
     {% block extra_scripts %}
     {% endblock %}
